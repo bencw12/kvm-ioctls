@@ -144,4 +144,6 @@ pub enum Cap {
     MsiDevid = KVM_CAP_MSI_DEVID,
     HypervSynic = KVM_CAP_HYPERV_SYNIC,
     HypervSynic2 = KVM_CAP_HYPERV_SYNIC2,
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    MemoryAttributes = KVM_CAP_MEMORY_ATTRIBUTES,
 }
