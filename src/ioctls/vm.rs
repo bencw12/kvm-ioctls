@@ -1476,6 +1476,20 @@ impl VmFd {
             Err(errno::Error::last())
         }
     }
+
+    /// Set memory attributes for a region of guest memory
+    /// Currently used for marking memory private for SEV-SNP and TDX guests
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    pub fn set_memory_attributes(&self, memory_attributes: &kvm_memory_attributes) -> Result<()> {
+        // Safe because we know that our file is a VM fd, we know the kernel will only read the
+        // correct amount of memory from our pointer, and we verify the return result.
+        let ret = unsafe { ioctl_with_ref(self, KVM_SET_MEMORY_ATTRIBUTES(), memory_attributes) };
+        if ret == 0 {
+            Ok(())
+        } else {
+            Err(errno::Error::last())
+        }
+    }
 }
 
 /// Helper function to create a new `VmFd`.
