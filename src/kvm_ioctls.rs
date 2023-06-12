@@ -102,7 +102,11 @@ ioctl_ior_nr!(KVM_MEMORY_ENCRYPT_REG_REGION, KVMIO, 0xbb, kvm_enc_region);
 /* Available on SEV-enabled guests. */
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 ioctl_ior_nr!(KVM_MEMORY_ENCRYPT_UNREG_REGION, KVMIO, 0xbc, kvm_enc_region);
-
+/* Available with KVM_CAP_MEMORY_ATTRIBUTES */
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+ioctl_iowr_nr!(KVM_GET_SUPPORTED_MEMORY_ATTRIBUTES, KVMIO, 0xd2, ::std::os::raw::c_ulonglong);
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+ioctl_iowr_nr!(KVM_SET_MEMORY_ATTRIBUTES, KVMIO, 0xd3, kvm_memory_attributes);
 // Ioctls for VCPU fds.
 
 ioctl_io_nr!(KVM_RUN, KVMIO, 0x80);
