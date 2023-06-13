@@ -108,6 +108,20 @@ impl VmFd {
         }
     }
 
+    /// The same as set_user_memory_region() but for restricted
+    pub unsafe fn set_user_memory_region2(
+	&self,
+	user_memory_region: kvm_userspace_memory_region2,
+    ) -> Result<()> {
+	let ret = ioctl_with_ref(self, KVM_SET_USER_MEMORY_REGION2(), &user_memory_region);
+        if ret == 0 {
+            Ok(())
+        } else {
+            Err(errno::Error::last())
+        }
+    }
+	
+
     /// Sets the address of the three-page region in the VM's address space.
     ///
     /// See the documentation for `KVM_SET_TSS_ADDR`.
