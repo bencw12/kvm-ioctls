@@ -93,6 +93,10 @@ pub enum VcpuExit<'a> {
     IoapicEoi(u8 /* vector */),
     /// Corresponds to KVM_EXIT_HYPERV.
     Hyperv,
+    /// Corresponds to KVM_EXIT_MEMORY_FAULT.
+    MemoryFault(u64 /* flags */, u64 /* gpa */, u64 /* size */),
+    /// Corresponds to KVM_EXIT_VMGEXIT.
+    Vmgexit(u64 /* ghcb_msr */, u8 /* error */),
 }
 
 /// Wrapper over KVM vCPU ioctls.
@@ -1225,7 +1229,12 @@ impl VcpuFd {
     /// ```
     pub fn run(&self) -> Result<VcpuExit> {
         // Safe because we know that our file is a vCPU fd and we verify the return result.
-        let ret = unsafe { ioctl(self, KVM_RUN()) };
+        let mut ret = unsafe { ioctl(self, KVM_RUN()) };
+        //found this skip in qemu/accel/kvm/kvm-all.c on snp-latest branch
+        //theres a ret = -1 that isn't a vmgexit, let that one through
+        if ret == -1 && errno::Error::last().errno() == libc::EPERM{
+            ret = 0;
+        }
         if ret == 0 {
             let run = self.kvm_run_ptr.as_mut_ref();
             match run.exit_reason {
@@ -1310,6 +1319,14 @@ impl VcpuFd {
                     Ok(VcpuExit::IoapicEoi(eoi.vector))
                 }
                 KVM_EXIT_HYPERV => Ok(VcpuExit::Hyperv),
+                KVM_EXIT_MEMORY_FAULT => {
+                    let memory = unsafe { &mut run.__bindgen_anon_1.memory};
+                    Ok(VcpuExit::MemoryFault(memory.flags, memory.gpa, memory.size))
+                }
+                KVM_EXIT_VMGEXIT => {
+                    let vmgexit = unsafe { &mut run.__bindgen_anon_1.vmgexit };
+                    Ok(VcpuExit::Vmgexit(vmgexit.ghcb_msr, vmgexit.error))
+                },
                 r => panic!("unknown kvm exit reason: {}", r),
             }
         } else {

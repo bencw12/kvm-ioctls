@@ -1492,7 +1492,7 @@ impl VmFd {
     }
 
     /// Set memory attributes for a region of guest memory
-    /// Currently used for marking memory private for SEV-SNP and TDX guests
+    /// Currently used for marking memory private/shared for SEV-SNP and TDX guests
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     pub fn set_memory_attributes(&self, memory_attributes: &kvm_memory_attributes) -> Result<()> {
         // Safe because we know that our file is a VM fd, we know the kernel will only read the
